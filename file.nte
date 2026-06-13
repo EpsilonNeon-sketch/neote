@@ -1,5 +1,6 @@
  $attach @neote;
  $attach @neoteweb;
+ 
 
 st neoteweb.web = ('
 <!DOCTYPE html>
@@ -21,9 +22,9 @@ st neoteweb.web = ('
 ')
 
 st neoteweb.script = ("
+$imp Chart from 'https://esm.run/chart.js/auto';
     // Import Chart.js from a CDN
     // Updated to match the new Lexer regex: $imp Name from 'url'
-    $imp Chart from 'https://cdn.jsdelivr.net/npm/chart.js/auto'
 
     func -as initChart() {
         try {
