@@ -1,0 +1,63 @@
+ $attach @neote;
+ $attach @neoteweb;
+
+st neoteweb.web = ('
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Neote Chart.js</title>
+    <style>
+        body { background-color: #2d2d2d; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
+        .chart-container { width: 600px; margin: 0 auto; background: #444; padding: 20px; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+      <h1>Neote Analytics</h1>
+      <div class="chart-container">
+          <canvas id="myChart"></canvas>
+      </div>
+  </body>
+</html>
+')
+
+st neoteweb.script = ("
+    // Import Chart.js from a CDN
+    // Syntax: $imp Name from 'url'
+    $imp Chart from 'https://cdn.jsdelivr.net/npm/chart.js/auto'
+
+    func -as initChart() {
+        try {
+            st canvas = doc.gebd('myChart')
+            
+            // Setup chart configuration
+            st config = {
+                type: 'bar',
+                data: {
+                    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                    datasets: [{
+                        label: '# of Votes',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            }
+
+            // Create new Chart instance
+            -n Chart(canvas, config)
+            showcase('Chart rendered successfully')
+            
+        } catch (err) {
+            ovr.msg('Chart Error: ' + err.message)
+        } finale {
+            showcase('Init complete')
+        }
+    }
+
+    // Run the async function
+    initChart()
+")
