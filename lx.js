@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
             runNeote(neoteCode);
         })
         .catch(err => {
-            document.body.innerHTML = `<h1 style="color:red">Critical Error: ${err.message}</h1>`;
+            renderError(`Critical Error: ${err.message}`);
         });
 });
 
@@ -47,7 +47,14 @@ function runNeote(neoteCode) {
 
     if (webMatch && webMatch[2]) {
         let htmlLayout = webMatch[2].trim();
-        document.documentElement.innerHTML = htmlLayout;
+
+        // Safer injection using DOMParser
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlLayout, 'text/html');
+        document.body.innerHTML = ''; // Clear default body
+        Array.from(doc.body.childNodes).forEach(node => {
+            document.body.appendChild(node);
+        });
     }
 
     // 5. Extract Script
@@ -58,6 +65,10 @@ function runNeote(neoteCode) {
         let neoteScript = scriptMatch[2].trim();
 
         // 6. Transpilation Core
+
+        // Variables (Moved to top, strictly matching start of line or spaces to avoid 'st' overlap in strings)
+        neoteScript = neoteScript.replace(/(^|[\s;{}])st\s+(\w+)\s*=/g, '$1const $2 =');
+        neoteScript = neoteScript.replace(/(^|[\s;{}])mut\s+(\w+)\s*=/g, '$1let $2 =');
 
         // Imports
         neoteScript = neoteScript.replace(/\$imp\s+"@(.*?)"\s*-f\s*"(.*?)"/g, 'import {$1} from "$2"');
@@ -89,19 +100,16 @@ function runNeote(neoteCode) {
         // --- ASYNC / AWAIT / FINALE ---
 
         // 1. Async Function Declaration
-        // func -as myFunc() -> async function myFunc()
-        neoteScript = neoteScript.replace(/func\s+-as\s+(\w+)/g, 'async function $1');
+        neoteScript = neoteScript.replace(/\bfunc\s+-as\s+(\w+)/g, 'async function $1');
 
-        // 2. Await Operator
-        // -aw ... -> await ...
+        // 2. Standard Function (Now isolated to not wreck async setup)
+        neoteScript = neoteScript.replace(/\bfunc\b(?!\s+-as)/g, 'function');
+
+        // 3. Await Operator
         neoteScript = neoteScript.replace(/-aw\s/g, 'await ');
 
-        // 3. Finale Block
-        // finale -> finally
+        // 4. Finale Block
         neoteScript = neoteScript.replace(/\bfinale\b/g, 'finally');
-
-        // Standard Function (Must run AFTER async check)
-        neoteScript = neoteScript.replace(/\bfunc\s/g, 'function ');
 
         // Document
         neoteScript = neoteScript.replace(/doc\.gebd\(/g, 'document.getElementById(');
@@ -122,10 +130,6 @@ function runNeote(neoteCode) {
         neoteScript = neoteScript.replace(/ovr\.que\((.*?)\)/g, 'prompt($1)');
         neoteScript = neoteScript.replace(/showcase\((.*?)\)/g, 'console.log($1)');
 
-        // Variables
-        neoteScript = neoteScript.replace(/st\s+(\w+)\s*=/g, 'const $1 =');
-        neoteScript = neoteScript.replace(/mut\s+(\w+)\s*=/g, 'let $1 =');
-
         // Inject
         const newScriptNode = document.createElement("script");
         newScriptNode.type = "module";
@@ -135,10 +139,11 @@ function runNeote(neoteCode) {
 }
 
 function renderError(message) {
-    document.body.innerHTML = `
-        <div style="background:#000; color:#ff3333; font-family:sans-serif; padding:20px; height:100vh;">
-            <h1>Neote Engine Halted</h1>
-            <p>${message}</p>
-        </div>
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = "background:#2d004d; color:#e0c3fc; font-family:sans-serif; padding:20px; border-bottom: 4px solid #ff3333; z-index: 9999; position: relative;";
+    errDiv.innerHTML = `
+        <h2 style="margin-top: 0;">Neote Engine Halted</h2>
+        <p>${message}</p>
     `;
+    document.body.prepend(errDiv);
 }
