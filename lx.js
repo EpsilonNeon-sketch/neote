@@ -71,7 +71,9 @@ function runNeote(neoteCode) {
         neoteScript = neoteScript.replace(/(^|[\s;{}])mut\s+(\w+)\s*=/g, '$1let $2 =');
 
         // Imports
-        neoteScript = neoteScript.replace(/\$imp\s+"@(.*?)"\s*-f\s*"(.*?)"/g, 'import {$1} from "$2"');
+        // Updated to handle standard syntax: $imp Chart from 'chart.js/auto';
+        neoteScript = neoteScript.replace(/\$imp\s+(.*?)\s+from\s+(['"])(.*?)\2/g, 'import $1 from $2$3$2');
+
         neoteScript = neoteScript.replace(/-n(\s+[A-Z])/g, 'new$1');
         neoteScript = neoteScript.replace(/-w(?=[.;)\n])/g, 'window');
 
