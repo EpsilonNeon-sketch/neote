@@ -22,7 +22,7 @@ st neoteweb.web = ('
 
 st neoteweb.script = ("
     // Import Chart.js from a CDN
-    // Syntax: $imp Name from 'url'
+    // Updated to match the new Lexer regex: $imp Name from 'url'
     $imp Chart from 'https://cdn.jsdelivr.net/npm/chart.js/auto'
 
     func -as initChart() {
